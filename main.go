@@ -105,12 +105,8 @@ func countHTTP(id int) (bool, error) {
 		return false, err
 	}
 	log.Println(id, bytes.Count(data, []byte("http")))
-	if bytes.Count(data, []byte("http")) >= 15 {
-		for _, key := range []string{"qq.com", "sina.com.cn"} {
-			if bytes.Count(data, []byte(key)) > 15 {
-				return true, nil
-			}
-		}
+	if bytes.Count(data, []byte("http")) >= 100 {
+		return true, nil
 	}
 	return false, nil
 }
