@@ -36,6 +36,19 @@ func main() {
 var store sync.Map
 
 func check() {
+	{
+		// 刷新cookie
+		resp, err := client.Get("https://bbs.deepin.org/api/v1/user/msg/count")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		resp.Body.Close()
+		if resp.StatusCode != 200 {
+			time.Sleep(time.Second)
+			log.Panic(resp.Status)
+		}
+	}
 	resp, err := client.Get("https://bbs.deepin.org/api/v1/thread/index?order=updated_at&limit=20&where=&offset=0")
 	if err != nil {
 		log.Println(err)
@@ -52,8 +65,9 @@ func check() {
 			ID   int `json:"id"`
 			Top  int `json:"top"`
 			User struct {
-				Level int `json:"level"`
-				ID    int `json:"id"`
+				Level    int    `json:"level"`
+				ID       int    `json:"id"`
+				Nickname string `json:"nickname"`
 			} `json:"user"`
 		}
 	}
@@ -72,8 +86,17 @@ func check() {
 			continue
 		}
 		m[t.User.ID]++
-		if m[t.User.ID] >= 3 {
-			log.Println("因账户发帖过多，禁言用户", m[t.User.ID], t.User.ID)
+		log.Printf("用户：%s 帖子数：%d", t.User.Nickname, m[t.User.ID])
+		if m[t.User.ID] >= 2 {
+			threadsCount, err := countThread(t.User.ID)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			if threadsCount > 5 {
+				return
+			}
+			log.Printf("因账户发帖过多(%d个)，禁言用户：%s(%d)", m[t.User.ID], t.User.Nickname, t.User.ID)
 			ban(t.User.ID)
 			return
 		}
@@ -82,33 +105,53 @@ func check() {
 			continue
 		}
 		store.Store(key, struct{}{})
-		c, err := countHTTP(t.ID)
+		linksCount, err := countHTTP(t.ID)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		if c {
-			log.Println("因帖子链接过多，禁言用户", t.ID, t.User.ID)
+
+		log.Printf("帖子：https://bbs.deepin.org/post/%d 连接数：%d", t.ID, linksCount)
+
+		if linksCount >= 100 {
+			log.Printf("因帖子%d链接过多，禁言用户: %s", t.ID, t.User.Nickname)
 			ban(t.User.ID)
 			return
 		}
 	}
 }
-func countHTTP(id int) (bool, error) {
-	resp, err := http.Get(fmt.Sprintf("https://bbs.deepin.org/api/v1/thread/info?id=%d", id))
+func countThread(id int) (int, error) {
+	resp, err := http.Get(fmt.Sprintf("https://bbs.deepin.org/api/v1/user/info?id=%d", id))
 	if err != nil {
-		return false, err
+		return 0, err
 	}
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	log.Println(id, bytes.Count(data, []byte("http")))
-	if bytes.Count(data, []byte("http")) >= 100 {
-		return true, nil
+	var info struct {
+		ID           int `json:"id"`
+		ThreadsCount int `json:"threads_cnt"`
+		PostsCount   int `json:"posts_cnt"`
 	}
-	return false, nil
+	err = json.Unmarshal(data, &info)
+	if err != nil {
+		return 0, err
+	}
+	return info.ThreadsCount, nil
+}
+func countHTTP(id int) (int, error) {
+	resp, err := http.Get(fmt.Sprintf("https://bbs.deepin.org/api/v1/thread/info?id=%d", id))
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	return bytes.Count(data, []byte("http")), nil
 }
 func ban(id int) {
 	key := fmt.Sprintf("u_%d", id)
