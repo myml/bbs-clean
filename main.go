@@ -87,7 +87,7 @@ func check() {
 		}
 		m[t.User.ID]++
 		log.Printf("用户：%s 帖子数：%d", t.User.Nickname, m[t.User.ID])
-		if m[t.User.ID] >= 2 {
+		if m[t.User.ID] > 2 {
 			threadsCount, err := countThread(t.User.ID)
 			if err != nil {
 				log.Println(err)
@@ -100,11 +100,13 @@ func check() {
 			ban(t.User.ID)
 			return
 		}
+
 		key := fmt.Sprintf("t_%d", t.ID)
 		if _, ok := store.Load(key); ok {
 			continue
 		}
 		store.Store(key, struct{}{})
+
 		linksCount, err := countHTTP(t.ID)
 		if err != nil {
 			log.Println(err)
