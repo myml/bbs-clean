@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -62,9 +63,10 @@ func check() {
 	}
 	var result struct {
 		ThreadIndex []struct {
-			ID   int `json:"id"`
-			Top  int `json:"top"`
-			User struct {
+			ID      int    `json:"id"`
+			Top     int    `json:"top"`
+			Subject string `json:"subject"`
+			User    struct {
 				Level    int    `json:"level"`
 				ID       int    `json:"id"`
 				Nickname string `json:"nickname"`
@@ -76,6 +78,8 @@ func check() {
 		log.Println(err)
 		return
 	}
+	log.Println(result)
+
 	m := make(map[int]int)
 	for i := range result.ThreadIndex {
 		t := result.ThreadIndex[i]
@@ -85,6 +89,15 @@ func check() {
 		if t.User.Level > 2 {
 			continue
 		}
+
+		for _, keyword := range []string{"Dumps", "Casinos"} {
+			if strings.Contains(result.ThreadIndex[i].Subject, keyword) {
+				log.Printf("因包含关键词(%s)，禁言用户：%s(%d)", keyword, t.User.Nickname, t.User.ID)
+				ban(t.User.ID, "因发帖包含关键词 "+keyword)
+				return
+			}
+		}
+
 		m[t.User.ID]++
 		log.Printf("用户：%s 帖子数：%d", t.User.Nickname, m[t.User.ID])
 		if m[t.User.ID] > 2 {
@@ -97,7 +110,7 @@ func check() {
 				return
 			}
 			log.Printf("因账户发帖过多(%d个)，禁言用户：%s(%d)", m[t.User.ID], t.User.Nickname, t.User.ID)
-			ban(t.User.ID)
+			ban(t.User.ID, "因账户短时间发帖过多")
 			return
 		}
 
@@ -117,7 +130,7 @@ func check() {
 
 		if linksCount >= 100 {
 			log.Printf("因帖子%d链接过多，禁言用户: %s", t.ID, t.User.Nickname)
-			ban(t.User.ID)
+			ban(t.User.ID, "因贴子链接数过多")
 			return
 		}
 	}
@@ -155,7 +168,7 @@ func countHTTP(id int) (int, error) {
 	}
 	return bytes.Count(data, []byte("http")), nil
 }
-func ban(id int) {
+func ban(id int, reason string) {
 	key := fmt.Sprintf("u_%d", id)
 	if _, ok := store.Load(key); ok {
 		return
@@ -174,7 +187,7 @@ func ban(id int) {
 	body.UserID = id
 	body.Action = 2
 	body.BeginAt = "2022-05-19 09:35:10"
-	body.Reason = "疑似恶意灌水"
+	body.Reason = "「恶意灌水机器人」：" + reason
 	body.HideThread = true
 	body.Admin = "bot"
 	data, err := json.Marshal(&body)
