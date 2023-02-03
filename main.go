@@ -90,7 +90,7 @@ func check() {
 			continue
 		}
 
-		for _, keyword := range []string{"Dumps", "Casinos"} {
+		for _, keyword := range []string{"Dumps", "Casinos", "dumps", "exam"} {
 			if strings.Contains(result.ThreadIndex[i].Subject, keyword) {
 				log.Printf("因包含关键词(%s)，禁言用户：%s(%d)", keyword, t.User.Nickname, t.User.ID)
 				ban(t.User.ID, "因发帖包含关键词 "+keyword)
