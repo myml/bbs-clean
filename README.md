@@ -9,3 +9,5 @@
 3. 贴子标题包含黑名单关键字
 
 仅对论坛等级低于三级的用户生效果。
+
+添加关键词见 [keywords.go](./blob/master/keywords.go) 文件
