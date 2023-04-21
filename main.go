@@ -95,3 +95,11 @@ func ban(id int64, reason string) {
 	}
 	log.Println(resp.Status, string(data))
 }
+
+func truncation(text string) string {
+	a := []rune(text)
+	if len(a) > 15 {
+		return string(a[:15]) + "..."
+	}
+	return string(a)
+}

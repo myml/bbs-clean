@@ -51,7 +51,7 @@ func checkPost() {
 		if info.Levels.ID > 2 {
 			continue
 		}
-		log.Println(info.Nickname, "发布回复：", result[i].MessageFmt[:30]+"...")
+		log.Println(info.Nickname, "发布回复：", truncation(result[i].MessageFmt))
 		// 用户短时间发帖超过3个，并且历史发帖数少于5个，认为是新号在恶意批量发广告
 		postCount[info.ID]++
 		if postCount[info.ID] > 3 && info.PostsCnt <= 5 {
