@@ -55,7 +55,7 @@ func checkThread() {
 		for _, keyword := range Keywords {
 			if strings.Contains(strings.ToLower(result.ThreadIndex[i].Subject), keyword) {
 				ban(t.User.ID, "因发帖包含关键词 "+keyword)
-				return
+				continue
 			}
 		}
 		// 用户短时间发帖超过3个，并且历史发帖数少于5个，认为是新号在恶意批量发广告
@@ -70,7 +70,7 @@ func checkThread() {
 				return
 			}
 			ban(t.User.ID, "因账户短时间发帖过多")
-			return
+			continue
 		}
 		// 通过机器学习判断是否是广告
 		is, err := isAd(t.Subject)
@@ -80,7 +80,7 @@ func checkThread() {
 		}
 		if is {
 			ban(t.User.ID, "因机器学习判断")
-			return
+			continue
 		}
 	}
 }

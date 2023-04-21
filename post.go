@@ -56,12 +56,12 @@ func checkPost() {
 		postCount[info.ID]++
 		if postCount[info.ID] > 3 && info.PostsCnt <= 5 {
 			ban(info.ID, "因账户短时间发帖过多")
-			return
+			continue
 		}
 		// 内容的链接数超过100个，认为是在恶意发布
 		if strings.Count(result[i].Message, "http") > 100 {
 			ban(result[i].UserID, "因贴子链接数过多")
-			return
+			continue
 		}
 		// 通过机器学习判断是否是广告
 		is, err := isAd(result[i].MessageFmt)
@@ -71,7 +71,7 @@ func checkPost() {
 		}
 		if is {
 			ban(result[i].UserID, "因机器学习判断")
-			return
+			continue
 		}
 	}
 }
