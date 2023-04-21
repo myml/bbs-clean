@@ -51,17 +51,15 @@ func checkPost() {
 		if info.Levels.ID > 2 {
 			continue
 		}
-		log.Println(info.Nickname, "发布回复：", result[i].MessageFmt)
+		log.Println(info.Nickname, "发布回复：", result[i].MessageFmt[:10]+"...")
 		// 用户短时间发帖超过3个，并且历史发帖数少于5个，认为是新号在恶意批量发广告
 		postCount[info.ID]++
 		if postCount[info.ID] > 3 && info.PostsCnt <= 5 {
-			log.Printf("因账户发帖过多，禁言用户：%s(%d)", info.Nickname, info.ID)
 			ban(info.ID, "因账户短时间发帖过多")
 			return
 		}
 		// 内容的链接数超过100个，认为是在恶意发布
 		if strings.Count(result[i].Message, "http") > 100 {
-			log.Printf("因帖子 %d 链接过多，禁言用户: %s(%d)", result[i].ID, info.Nickname, info.ID)
 			ban(result[i].UserID, "因贴子链接数过多")
 			return
 		}

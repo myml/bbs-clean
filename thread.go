@@ -49,12 +49,11 @@ func checkThread() {
 		if t.User.Level > 2 {
 			continue
 		}
-		log.Printf(t.User.Nickname, "发布贴子：", t.Subject)
+		log.Println(t.User.Nickname, "发布贴子：", t.Subject[:10]+"...")
 
 		// 贴子标题包含关键字，认为是散发广告
 		for _, keyword := range Keywords {
 			if strings.Contains(strings.ToLower(result.ThreadIndex[i].Subject), keyword) {
-				log.Printf("因包含关键词(%s)，禁言用户：%s(%d)", keyword, t.User.Nickname, t.User.ID)
 				ban(t.User.ID, "因发帖包含关键词 "+keyword)
 				return
 			}
@@ -70,7 +69,6 @@ func checkThread() {
 			if info.ThreadsCnt > 5 {
 				return
 			}
-			log.Printf("因账户发帖过多(%d个)，禁言用户：%s(%d)", threadCount[t.User.ID], t.User.Nickname, t.User.ID)
 			ban(t.User.ID, "因账户短时间发帖过多")
 			return
 		}
