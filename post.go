@@ -10,7 +10,7 @@ import (
 
 // 检查最新回复贴
 func checkPost() {
-	resp, err := client.Get("https://bbs.deepin.org/api/v2/public/posts?offset=0&limit=50")
+	resp, err := client.Get("https://bbs.deepin.org/api/v2/public/posts?offset=0&limit=30")
 	if err != nil {
 		log.Println(err)
 		return
@@ -55,9 +55,9 @@ func checkPost() {
 			continue
 		}
 		log.Println(info.Nickname, "发布回复：", truncation(result[i].MessageFmt))
-		// 用户短时间发帖超过3个，并且历史发帖数少于5个，认为是新号在恶意批量发广告
+		// 用户短时间回复超过10个
 		postCount[info.ID]++
-		if postCount[info.ID] > 3 && info.PostsCnt <= 5 {
+		if postCount[info.ID] > 10 {
 			ban(info.ID, "因账户短时间发帖过多")
 			continue
 		}
