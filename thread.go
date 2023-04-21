@@ -49,7 +49,7 @@ func checkThread() {
 		if t.User.Level > 2 {
 			continue
 		}
-		log.Println(t.User.Nickname, "发布贴子：", t.Subject[:10]+"...")
+		log.Println(t.User.Nickname, "发布贴子：", t.Subject[:30]+"...")
 
 		// 贴子标题包含关键字，认为是散发广告
 		for _, keyword := range Keywords {

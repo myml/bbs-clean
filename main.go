@@ -62,7 +62,7 @@ func ban(id int64, reason string) {
 		_banUserPool.Store(key, struct{}{})
 	}()
 	info, err := getUserInfo(id)
-	log.Printf("因%s，禁言用户：%s(%d)", reason, info.Nickname, info.ID)
+	log.Printf("%s，禁言用户：%s(%d)", reason, info.Nickname, info.ID)
 
 	var body struct {
 		UserID     int64  `json:"user_id"`
