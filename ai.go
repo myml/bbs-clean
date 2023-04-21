@@ -57,6 +57,9 @@ func isAd(text string) (bool, error) {
 	}
 	normalConfidence := 0.0
 	adConfidence := 0.0
+	if len(result.Data) == 0 {
+		log.Printf("can not get result: %#v\n", result)
+	}
 	for _, confidence := range result.Data[0].Confidences {
 		switch confidence.Label {
 		case "LABEL_0":

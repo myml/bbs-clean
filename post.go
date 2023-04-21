@@ -47,6 +47,9 @@ func checkPost() {
 			log.Println("get user info: %w", err)
 			continue
 		}
+		if !info.AllowSpeak {
+			continue
+		}
 		// 跳过高等级用户
 		if info.Levels.ID > 2 {
 			continue
