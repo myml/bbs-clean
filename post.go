@@ -61,20 +61,23 @@ func checkPost() {
 			ban(info.ID, "因账户短时间发帖过多")
 			continue
 		}
-		// 内容的链接数超过100个，认为是在恶意发布
-		if strings.Count(result[i].Message, "http") > 100 {
+		// 内容的链接数超过100个，认为是在恶意发布广告
+		linkCount := strings.Count(result[i].Message, `href="http`)
+		if linkCount > 100 {
 			ban(result[i].UserID, "因贴子链接数过多")
 			continue
 		}
-		// 通过机器学习判断是否是广告
-		is, err := isAd(result[i].MessageFmt)
-		if err != nil {
-			log.Println("is ad:", err)
-			return
-		}
-		if is {
-			ban(result[i].UserID, "因机器学习判断")
-			continue
+		if linkCount > 0 {
+			// 通过机器学习判断是否是广告
+			is, err := isAd(result[i].MessageFmt)
+			if err != nil {
+				log.Println("is ad:", err)
+				return
+			}
+			if is {
+				ban(result[i].UserID, "因机器学习判断")
+				continue
+			}
 		}
 	}
 }

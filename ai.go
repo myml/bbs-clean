@@ -69,7 +69,7 @@ func isAd(text string) (bool, error) {
 			adConfidence = confidence.Confidence
 		}
 	}
-	if normalConfidence < 0.2 && adConfidence > 0.8 {
+	if normalConfidence <= 0.2 && adConfidence >= 0.8 {
 		return true, nil
 	}
 	return false, nil
