@@ -55,9 +55,9 @@ func checkPost() {
 			continue
 		}
 		log.Println(info.Nickname, "发布回复：", truncation(result[i].MessageFmt))
-		// 用户短时间回复超过10个
+		// 一半以上的回复为同一个人发表，判断是在刷广告
 		postCount[info.ID]++
-		if postCount[info.ID] > 10 {
+		if postCount[info.ID] > len(result)/2 {
 			ban(info.ID, "因账户短时间发帖过多")
 			continue
 		}
