@@ -12,7 +12,8 @@ import (
 	"time"
 )
 
-var envCookie = os.Getenv("cookie")
+var envCookie = os.Getenv("COOKIE")
+var envToken = os.Getenv("TOKEN")
 var envAI = os.Getenv("ai")
 
 var client http.Client
@@ -22,7 +23,11 @@ type transport struct {
 }
 
 func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("cookie", envCookie)
+	if len(envCookie) > 0 {
+		req.Header.Add("cookie", envCookie)
+	} else if len(envToken) > 0 {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", envToken))
+	}
 	return t.T.RoundTrip(req)
 }
 
@@ -38,7 +43,7 @@ func main() {
 
 func checkCookie() {
 	// 检查cookie是否过期
-	resp, err := client.Get("https://bbs.deepin.org/api/v1/user/msg/count")
+	resp, err := client.Get("https://bbs.deepin.org/api/v2/user/integral")
 	if err != nil {
 		log.Println(err)
 		return
@@ -62,6 +67,9 @@ func ban(id int64, reason string) {
 		_banUserPool.Store(key, struct{}{})
 	}()
 	info, err := getUserInfo(id)
+	if err != nil {
+		log.Panic(err)
+	}
 	log.Printf("%s，禁言用户：%s(%d)", reason, info.Nickname, info.ID)
 
 	var body struct {
