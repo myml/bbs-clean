@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-var envCookie = os.Getenv("COOKIE")
-var envToken = os.Getenv("TOKEN")
-var envAI = os.Getenv("ai")
+var envCookie = os.Getenv("BBS_COOKIE")
+var envToken = os.Getenv("BBS_TOKEN")
+var envAI = os.Getenv("BBS_AI")
 
 var client http.Client
 

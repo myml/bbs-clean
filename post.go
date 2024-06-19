@@ -67,7 +67,7 @@ func checkPost() {
 			ban(result[i].UserID, "因贴子链接数过多")
 			continue
 		}
-		if linkCount > 0 {
+		if linkCount > 0 && len(envAI) > 0 {
 			// 通过机器学习判断是否是广告
 			is, err := isAd(result[i].MessageFmt)
 			if err != nil {

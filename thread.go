@@ -72,15 +72,17 @@ func checkThread() {
 			ban(t.User.ID, "因账户短时间发帖过多")
 			continue
 		}
-		// 通过机器学习判断是否是广告
-		is, err := isAd(t.Subject)
-		if err != nil {
-			log.Println("is ad:", err)
-			return
-		}
-		if is {
-			ban(t.User.ID, "因机器学习判断")
-			continue
+		if len(envAI) > 0 {
+			// 通过机器学习判断是否是广告
+			is, err := isAd(t.Subject)
+			if err != nil {
+				log.Println("is ad:", err)
+				return
+			}
+			if is {
+				ban(t.User.ID, "因机器学习判断")
+				continue
+			}
 		}
 	}
 }
