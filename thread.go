@@ -84,5 +84,17 @@ func checkThread() {
 				continue
 			}
 		}
+		if len(envHGToken) > 0 {
+			// 通过机器学习判断是否是广告
+			is, err := huggingfaceAPIAD(t.Subject)
+			if err != nil {
+				log.Println("hg is ad:", err)
+				return
+			}
+			if is {
+				ban(t.User.ID, "因机器学习判断")
+				continue
+			}
+		}
 	}
 }

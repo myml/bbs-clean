@@ -15,6 +15,7 @@ import (
 var envCookie = os.Getenv("BBS_COOKIE")
 var envToken = os.Getenv("BBS_TOKEN")
 var envAI = os.Getenv("BBS_AI")
+var envHGToken = os.Getenv("HG_TOKEN")
 
 var client http.Client
 

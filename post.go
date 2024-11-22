@@ -79,5 +79,17 @@ func checkPost() {
 				continue
 			}
 		}
+		if linkCount > 0 && len(envHGToken) > 0 {
+			// 通过机器学习判断是否是广告
+			is, err := huggingfaceAPIAD(result[i].MessageFmt)
+			if err != nil {
+				log.Println("hg is ad:", err)
+				return
+			}
+			if is {
+				ban(result[i].UserID, "因机器学习判断")
+				continue
+			}
+		}
 	}
 }
