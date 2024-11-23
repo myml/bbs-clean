@@ -10,32 +10,52 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"unicode"
 )
 
 var cache = make(map[string]*bool)
 
+func containsChinese(s string) bool {
+	for _, r := range s {
+		// 判断字符是否在中文的 Unicode 范围
+		if unicode.Is(unicode.Han, r) {
+			return true
+		}
+	}
+	return false
+}
+
 func huggingfaceAPIAD(text string) (bool, error) {
 	d := md5.Sum([]byte(text))
 	key := hex.EncodeToString(d[:])
-	if cache[key] == nil {
-		v, err := huggingfaceAPIADWithoutCache(text)
-		if err != nil {
-			return false, err
-		}
-		cache[key] = &v
-		time.AfterFunc(time.Hour*24, func() {
-			delete(cache, key)
-		})
+	if cache[key] != nil {
+		return *cache[key], nil
 	}
-	return *cache[key], nil
+	// TODO 中文模型不理想，暂不使用
+	if containsChinese(text) {
+		return false, nil
+	}
+	v, err := huggingfaceAPIADWithoutCache(text, "myml/bbs-ad-en")
+	if err != nil {
+		return false, err
+	}
+	cache[key] = &v
+	time.AfterFunc(time.Hour*24, func() {
+		delete(cache, key)
+	})
+	return v, nil
 }
 
-func huggingfaceAPIADWithoutCache(text string) (bool, error) {
+func huggingfaceAPIADWithoutCache(text string, module string) (bool, error) {
 	data, err := json.Marshal(map[string]string{"inputs": text})
 	if err != nil {
 		log.Panic(err)
 	}
-	req, err := http.NewRequest(http.MethodPost, "https://api-inference.huggingface.co/models/myml/bbs-ad-en", bytes.NewReader(data))
+	req, err := http.NewRequest(
+		http.MethodPost,
+		"https://api-inference.huggingface.co/models/"+module,
+		bytes.NewReader(data),
+	)
 	if err != nil {
 		return false, fmt.Errorf("new request: %w", err)
 	}
