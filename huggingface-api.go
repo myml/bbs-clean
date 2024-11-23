@@ -2,14 +2,35 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
+var cache = make(map[string]*bool)
+
 func huggingfaceAPIAD(text string) (bool, error) {
+	d := md5.Sum([]byte(text))
+	key := hex.EncodeToString(d[:])
+	if cache[key] == nil {
+		v, err := huggingfaceAPIADWithoutCache(text)
+		if err != nil {
+			return false, err
+		}
+		cache[key] = &v
+		time.AfterFunc(time.Hour*24, func() {
+			delete(cache, key)
+		})
+	}
+	return *cache[key], nil
+}
+
+func huggingfaceAPIADWithoutCache(text string) (bool, error) {
 	data, err := json.Marshal(map[string]string{"inputs": text})
 	if err != nil {
 		log.Panic(err)
