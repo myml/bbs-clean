@@ -12,6 +12,14 @@ import (
 	"time"
 )
 
+var envServer = "https://bbs.deepin.org.cn"
+
+func init() {
+	if len(os.Getenv("BBS_SERVER")) > 0 {
+		envServer = os.Getenv("BBS_SERVER")
+	}
+}
+
 var envCookie = os.Getenv("BBS_COOKIE")
 var envToken = os.Getenv("BBS_TOKEN")
 var envAI = os.Getenv("BBS_AI")
@@ -35,21 +43,22 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 func main() {
 	client.Transport = &transport{T: http.DefaultTransport}
 	for {
-		checkCookie()
+		checkLogin()
 		checkThread()
 		checkPost()
 		time.Sleep(time.Minute)
 	}
 }
 
-func checkCookie() {
+func checkLogin() {
 	// 检查cookie是否过期
-	resp, err := client.Get("https://bbs.deepin.org/api/v2/user/integral")
+	resp, err := client.Get(envServer + "/api/v2/user/integral")
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
+	_, _ = io.Copy(os.Stdout, resp.Body)
 	if resp.StatusCode != 200 {
 		time.Sleep(time.Second)
 		log.Panic(resp.Status)
@@ -58,8 +67,12 @@ func checkCookie() {
 
 var _banUserPool sync.Map
 
-// 禁言用户
 func ban(id int64, reason string) {
+	ban2(id, reason, true)
+}
+
+// 禁言用户
+func ban2(id int64, reason string, hide_thread bool) {
 	key := fmt.Sprintf("u_%d", id)
 	if _, ok := _banUserPool.Load(key); ok {
 		return
@@ -85,13 +98,13 @@ func ban(id int64, reason string) {
 	body.Action = 2
 	body.BeginAt = "2022-05-19 09:35:10"
 	body.Reason = "「恶意灌水机器人」：" + reason
-	body.HideThread = true
+	body.HideThread = hide_thread
 	body.Admin = "bot"
 	data, err := json.Marshal(&body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	resp, err := client.Post("https://bbs.deepin.org/api/v1/user/crime", "application/json", bytes.NewReader(data))
+	resp, err := client.Post(envServer+"/api/v1/user/crime", "application/json", bytes.NewReader(data))
 	if err != nil {
 		log.Println(err)
 		return

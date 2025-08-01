@@ -9,7 +9,7 @@ import (
 
 // 检查首页主题贴
 func checkThread() {
-	resp, err := client.Get("https://bbs.deepin.org/api/v1/thread/index?order=updated_at&limit=20&where=&offset=0")
+	resp, err := client.Get(envServer + "/api/v1/thread/index?order=updated_at&limit=20&where=&offset=0")
 	if err != nil {
 		log.Println(err)
 		return

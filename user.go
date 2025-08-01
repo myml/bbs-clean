@@ -59,7 +59,7 @@ func getUserInfo(id int64) (*UserInfo, error) {
 	if v, ok := _userInfoCache.Load(id); ok {
 		return v.(*UserInfo), nil
 	}
-	resp, err := client.Get(fmt.Sprintf("https://bbs.deepin.org/api/v1/user/info?id=%d", id))
+	resp, err := client.Get(fmt.Sprintf(envServer+"/api/v1/user/info?id=%d", id))
 	if err != nil {
 		return nil, err
 	}
