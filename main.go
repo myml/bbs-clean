@@ -43,9 +43,13 @@ func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
 func main() {
 	client.Transport = &transport{T: http.DefaultTransport}
 	for {
+		log.Println("check login")
 		checkLogin()
+		log.Println("check thread")
 		checkThread()
+		log.Println("check post")
 		checkPost()
+		log.Println("sleep")
 		time.Sleep(time.Minute)
 	}
 }
@@ -58,7 +62,11 @@ func checkLogin() {
 		return
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(os.Stdout, resp.Body)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Panic(err)
+	}
+	log.Println(string(data))
 	if resp.StatusCode != 200 {
 		time.Sleep(time.Second)
 		log.Panic(resp.Status)

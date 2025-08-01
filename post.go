@@ -10,7 +10,7 @@ import (
 
 // 检查最新回复贴
 func checkPost() {
-	resp, err := client.Get("https://bbs.deepin.org/api/v2/public/posts?offset=0&limit=30")
+	resp, err := client.Get(envServer + "/api/v2/public/posts?offset=0&limit=30")
 	if err != nil {
 		log.Println(err)
 		return
@@ -51,13 +51,14 @@ func checkPost() {
 			continue
 		}
 		// 跳过高等级用户
-		if info.Levels.ID > 2 {
+		if info.Levels.ID > 3 {
+			log.Println(info.Nickname, "skip")
 			continue
 		}
 		log.Println(info.Nickname, "发布回复：", truncation(result[i].MessageFmt))
-		// 一半以上的回复为同一个人发表，判断是在刷广告
+		// 三分之一的回复为同一个人发表，判断是在刷广告
 		postCount[info.ID]++
-		if postCount[info.ID] > len(result)/2 {
+		if postCount[info.ID] > len(result)/3 {
 			ban(info.ID, "因账户短时间发帖过多")
 			continue
 		}
