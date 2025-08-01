@@ -46,7 +46,7 @@ func checkThread() {
 			continue
 		}
 		// 跳过高等级用户
-		if t.User.Level > 2 {
+		if t.User.Level > 3 {
 			continue
 		}
 		log.Println(t.User.Nickname, "发布贴子：", truncation(t.Subject))
